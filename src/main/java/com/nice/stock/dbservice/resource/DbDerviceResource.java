@@ -13,16 +13,28 @@ import java.util.stream.Collectors;
 public class DbDerviceResource {
     private QuotesRepository qoutesRepository;
 
+    public DbDerviceResource(QuotesRepository qoutesRepository) {
+        this.qoutesRepository = qoutesRepository;
+    }
+
     @GetMapping("/{username}")
     public List<String> getQoutes(@PathVariable("username") final String username){
-       return qoutesRepository.findByUserName(username)
-                         .stream()
-                         .map(Quote::getQuote)
-                         .collect(Collectors.toList());
+        return getQuotesByUserName(username);
     }
 
     @PostMapping("/add")
     public List<String> add(@RequestBody final Quotes quotes){
-        return null;
+        quotes.getQuotes()
+                .stream()
+                .map(quote -> qoutesRepository.save(new Quote(quotes.getUserName(),quote)))
+                .forEach(quote -> qoutesRepository.save(quote));
+        return getQuotesByUserName(quotes.getUserName());
+    }
+
+    private List<String> getQuotesByUserName(String username){
+        return qoutesRepository.findByUserName(username)
+                .stream()
+                .map(Quote::getQuote)
+                .collect(Collectors.toList());
     }
 }
